@@ -4,6 +4,7 @@ use combine::combinator::{choice, many, many1, optional, position};
 use combine::easy::Error;
 use combine::error::StreamError;
 use combine::{parser, ParseResult, Parser};
+use serde::Serialize;
 
 use crate::helpers::{ident, kind, name, punct};
 use crate::position::Pos;
@@ -11,7 +12,7 @@ use crate::tokenizer::{Kind as T, Token, TokenStream};
 
 /// Text abstracts over types that hold a string value.
 /// It is used to make the AST generic over the string type.
-pub trait Text<'a>: 'a {
+pub trait Text<'a>: 'a + serde::Serialize {
     type Value: 'a
         + From<&'a str>
         + AsRef<str>
@@ -22,6 +23,64 @@ pub trait Text<'a>: 'a {
         + Ord
         + fmt::Debug
         + Clone;
+}
+
+#[derive(serde::Serialize)]
+pub struct NameKind<'a> {
+    value: &'a str,
+}
+
+#[derive(serde::Serialize)]
+#[serde(tag = "kind")]
+pub enum Kind<'a, T: Text<'a>> {
+    Argument {
+        name: Box<Kind<'a, T>>,
+        value: &'a Value<'a, T>,
+    },
+    Name(NameKind<'a>),
+}
+
+pub fn serialize_optional_name<'a, T: AsRef<str>, S: serde::Serializer>(
+    name: &Option<T>,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    match name {
+        Some(name) => serialize_name(name, serializer),
+        None => serializer.serialize_none(),
+    }
+}
+
+pub fn serialize_name<T: AsRef<str>, S: serde::Serializer>(
+    name: &T,
+    serializer: S,
+) -> Result<S::Ok, S::Error> {
+    let name = NameKind {
+        value: name.as_ref(),
+    };
+    name.serialize(serializer)
+}
+
+pub fn serialize_arguments<'a, T, S>(
+    args: &'a Vec<(T::Value, Value<'a, T>)>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    T: Text<'a> + serde::Serialize,
+    S: serde::Serializer,
+{
+    use serde::ser::SerializeSeq;
+
+    let mut seq = serializer.serialize_seq(Some(args.len()))?;
+    for (name, value) in args {
+        let arg = Kind::Argument {
+            name: Box::new(Kind::Name(NameKind {
+                value: name.as_ref(),
+            })),
+            value: &value,
+        };
+        seq.serialize_element(&arg)?;
+    }
+    seq.end()
 }
 
 impl<'a> Text<'a> for &'a str {
@@ -37,9 +96,13 @@ impl<'a> Text<'a> for std::borrow::Cow<'a, str> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
 pub struct Directive<'a, T: Text<'a>> {
+    #[cfg_attr(feature = "serde_json", serde(skip))]
     pub position: Pos,
+    #[cfg_attr(feature = "serde_json", serde(serialize_with = "serialize_name"))]
     pub name: T::Value,
+    #[cfg_attr(feature = "serde_json", serde(serialize_with = "serialize_arguments"))]
     pub arguments: Vec<(T::Value, Value<'a, T>)>,
 }
 
@@ -67,6 +130,32 @@ pub enum Value<'a, T: Text<'a>> {
     Object(BTreeMap<T::Value, Value<'a, T>>),
 }
 
+impl<'a, T: Text<'a>> serde::Serialize for Value<'a, T> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            Value::Variable(variable) => serializer.serialize_str(variable.as_ref()),
+            Value::Int(Number(integer)) => serializer.serialize_i64(*integer),
+            Value::Float(float) => serializer.serialize_f64(*float),
+            Value::String(string) => serializer.serialize_str(string),
+            Value::Boolean(boolean) => serializer.serialize_bool(*boolean),
+            Value::Null => serializer.serialize_none(),
+            Value::Enum(enm) => serializer.serialize_str(enm.as_ref()),
+            Value::List(list) => list.serialize(serializer),
+            Value::Object(object) => {
+                use serde::ser::SerializeMap;
+                let mut map = serializer.serialize_map(Some(object.len()))?;
+                for (k, v) in object {
+                    map.serialize_entry(k.as_ref(), v)?;
+                }
+                map.end()
+            }
+        }
+    }
+}
+
 impl<'a, T: Text<'a>> Value<'a, T> {
     pub fn into_static(&self) -> Value<'static, String> {
         match self {
@@ -88,7 +177,13 @@ impl<'a, T: Text<'a>> Value<'a, T> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde_json", serde(tag = "kind"))]
 pub enum Type<'a, T: Text<'a>> {
+    #[cfg_attr(
+        feature = "serde_json",
+        serde(serialize_with = "crate::common::serialize_name")
+    )]
     NamedType(T::Value),
     ListType(Box<Type<'a, T>>),
     NonNullType(Box<Type<'a, T>>),
