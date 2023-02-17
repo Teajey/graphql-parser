@@ -12,7 +12,7 @@ use crate::position::Pos;
 
 /// Root of query data
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct Document<'a, T: Text<'a>> {
     pub definitions: Vec<Definition<'a, T>>,
 }
@@ -37,23 +37,23 @@ impl<'a> Document<'a, String> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde_json", serde(tag = "kind"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(tag = "kind"))]
 pub enum Definition<'a, T: Text<'a>> {
-    #[cfg_attr(feature = "serde_json", serde(rename = "OperationDefinition"))]
+    #[cfg_attr(feature = "serde", serde(rename = "OperationDefinition"))]
     Operation(OperationDefinition<'a, T>),
-    #[cfg_attr(feature = "serde_json", serde(rename = "FragmentDefinition"))]
+    #[cfg_attr(feature = "serde", serde(rename = "FragmentDefinition"))]
     Fragment(FragmentDefinition<'a, T>),
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde_json", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct FragmentDefinition<'a, T: Text<'a>> {
     #[serde(skip)]
     pub position: Pos,
     #[cfg_attr(
-        feature = "serde_json",
+        feature = "serde",
         serde(serialize_with = "crate::common::serialize_name")
     )]
     pub name: T::Value,
@@ -63,11 +63,8 @@ pub struct FragmentDefinition<'a, T: Text<'a>> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
-#[cfg_attr(
-    feature = "serde_json",
-    serde(tag = "operation", rename_all = "camelCase")
-)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(tag = "operation", rename_all = "camelCase"))]
 pub enum OperationDefinition<'a, T: Text<'a>> {
     SelectionSet(SelectionSet<'a, T>),
     Query(Query<'a, T>),
@@ -76,13 +73,13 @@ pub enum OperationDefinition<'a, T: Text<'a>> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde_json", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct Query<'a, T: Text<'a>> {
     #[serde(skip)]
     pub position: Pos,
     #[cfg_attr(
-        feature = "serde_json",
+        feature = "serde",
         serde(serialize_with = "crate::common::serialize_optional_name")
     )]
     pub name: Option<T::Value>,
@@ -92,13 +89,13 @@ pub struct Query<'a, T: Text<'a>> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde_json", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct Mutation<'a, T: Text<'a>> {
     #[serde(skip)]
     pub position: Pos,
     #[cfg_attr(
-        feature = "serde_json",
+        feature = "serde",
         serde(serialize_with = "crate::common::serialize_optional_name")
     )]
     pub name: Option<T::Value>,
@@ -108,13 +105,13 @@ pub struct Mutation<'a, T: Text<'a>> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde_json", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct Subscription<'a, T: Text<'a>> {
     #[serde(skip)]
     pub position: Pos,
     #[cfg_attr(
-        feature = "serde_json",
+        feature = "serde",
         serde(serialize_with = "crate::common::serialize_optional_name")
     )]
     pub name: Option<T::Value>,
@@ -124,8 +121,8 @@ pub struct Subscription<'a, T: Text<'a>> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde_json", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct SelectionSet<'a, T: Text<'a>> {
     #[serde(skip)]
     pub span: (Pos, Pos),
@@ -134,13 +131,13 @@ pub struct SelectionSet<'a, T: Text<'a>> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde_json", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct VariableDefinition<'a, T: Text<'a>> {
     #[serde(skip)]
     pub position: Pos,
     #[cfg_attr(
-        feature = "serde_json",
+        feature = "serde",
         serde(serialize_with = "crate::common::serialize_name")
     )]
     pub name: T::Value,
@@ -149,8 +146,8 @@ pub struct VariableDefinition<'a, T: Text<'a>> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde_json", serde(tag = "kind"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(tag = "kind"))]
 pub enum Selection<'a, T: Text<'a>> {
     Field(Field<'a, T>),
     FragmentSpread(FragmentSpread<'a, T>),
@@ -158,23 +155,23 @@ pub enum Selection<'a, T: Text<'a>> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde_json", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct Field<'a, T: Text<'a>> {
     #[serde(skip)]
     pub position: Pos,
     #[cfg_attr(
-        feature = "serde_json",
+        feature = "serde",
         serde(serialize_with = "crate::common::serialize_optional_name")
     )]
     pub alias: Option<T::Value>,
     #[cfg_attr(
-        feature = "serde_json",
+        feature = "serde",
         serde(serialize_with = "crate::common::serialize_name")
     )]
     pub name: T::Value,
     #[cfg_attr(
-        feature = "serde_json",
+        feature = "serde",
         serde(serialize_with = "crate::common::serialize_arguments")
     )]
     pub arguments: Vec<(T::Value, Value<'a, T>)>,
@@ -183,13 +180,13 @@ pub struct Field<'a, T: Text<'a>> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde_json", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct FragmentSpread<'a, T: Text<'a>> {
     #[serde(skip)]
     pub position: Pos,
     #[cfg_attr(
-        feature = "serde_json",
+        feature = "serde",
         serde(serialize_with = "crate::common::serialize_name")
     )]
     pub fragment_name: T::Value,
@@ -224,8 +221,8 @@ impl<'a, T: Text<'a>> Serialize for TypeCondition<'a, T> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde_json", serde(rename_all = "camelCase"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(rename_all = "camelCase"))]
 pub struct InlineFragment<'a, T: Text<'a>> {
     #[serde(skip)]
     pub position: Pos,

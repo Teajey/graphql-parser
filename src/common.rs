@@ -96,13 +96,13 @@ impl<'a> Text<'a> for std::borrow::Cow<'a, str> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
 pub struct Directive<'a, T: Text<'a>> {
-    #[cfg_attr(feature = "serde_json", serde(skip))]
+    #[cfg_attr(feature = "serde", serde(skip))]
     pub position: Pos,
-    #[cfg_attr(feature = "serde_json", serde(serialize_with = "serialize_name"))]
+    #[cfg_attr(feature = "serde", serde(serialize_with = "serialize_name"))]
     pub name: T::Value,
-    #[cfg_attr(feature = "serde_json", serde(serialize_with = "serialize_arguments"))]
+    #[cfg_attr(feature = "serde", serde(serialize_with = "serialize_arguments"))]
     pub arguments: Vec<(T::Value, Value<'a, T>)>,
 }
 
@@ -177,11 +177,11 @@ impl<'a, T: Text<'a>> Value<'a, T> {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-#[cfg_attr(feature = "serde_json", derive(serde::Serialize))]
-#[cfg_attr(feature = "serde_json", serde(tag = "kind"))]
+#[cfg_attr(feature = "serde", derive(serde::Serialize))]
+#[cfg_attr(feature = "serde", serde(tag = "kind"))]
 pub enum Type<'a, T: Text<'a>> {
     #[cfg_attr(
-        feature = "serde_json",
+        feature = "serde",
         serde(serialize_with = "crate::common::serialize_name")
     )]
     NamedType(T::Value),

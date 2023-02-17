@@ -1,10 +1,11 @@
-use std::fs::File;
-use std::io::Write;
-
-const KITCHEN_SINK_DOCUMENT: &str = include_str!("queries/kitchen-sink.graphql");
-
+#[cfg(feature = "serde")]
 #[test]
 fn kitchen_sink() {
+    use std::fs::File;
+    use std::io::Write;
+
+    const KITCHEN_SINK_DOCUMENT: &str = include_str!("queries/kitchen-sink.graphql");
+
     let document = graphql_parser::parse_query::<String>(KITCHEN_SINK_DOCUMENT).unwrap();
     let json = serde_json::to_value(document).unwrap();
     let mut file = File::create("./tests/queries/kitchen-sink_non-canonical.json").unwrap();
