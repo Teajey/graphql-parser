@@ -65,7 +65,7 @@ pub fn serialize_arguments<'a, T, S>(
     serializer: S,
 ) -> Result<S::Ok, S::Error>
 where
-    T: Text<'a> + serde::Serialize,
+    T: Text<'a>,
     S: serde::Serializer,
 {
     use serde::ser::SerializeSeq;
