@@ -1,14 +1,26 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
+use serde::{Serialize, Serializer};
+
+pub trait Text<'a>: 'a {
+    type Value: 'a;
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub enum Value<'a, T: Text<'a>> {
+    Object(std::collections::BTreeMap<T::Value, Value<'a, T>>),
+}
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
+pub fn serialize_arguments<'a, T, S>(
+    args: &'a Vec<(T::Value, Value<'a, T>)>,
+    serializer: S,
+) -> Result<S::Ok, S::Error>
+where
+    T: Text<'a>,
+    S: Serializer,
+{
+    unimplemented!()
+}
+
+#[derive(Serialize)]
+pub struct Directive<'a, T: Text<'a>> {
+    #[serde(serialize_with = "serialize_arguments")]
+    pub arguments: Vec<(T::Value, Value<'a, T>)>,
 }
