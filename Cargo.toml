@@ -14,8 +14,13 @@ version = "0.4.0"
 authors = ["Paul Colomiets <paul@colomiets.name>"]
 edition = "2018"
 
+[features]
+serde = ["dep:serde", "dep:serde_json"]
+
 [dependencies]
 combine = "3.2.0"
+serde = { version = "1.0.152", optional = true, features = ["derive"] }
+serde_json = { version = "1.0.91", optional = true }
 thiserror = "1.0.11"
 
 [dev-dependencies]
